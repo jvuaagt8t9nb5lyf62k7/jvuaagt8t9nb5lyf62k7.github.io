@@ -1,108 +1,61 @@
-var svg = d3.select("svg"),
-  margin = {
-    top: 20,
-    right: 80,
-    bottom: 30,
-    left: 50
-  },
-  width = svg.attr("width") - margin.left - margin.right,
-  height = svg.attr("height") - margin.top - margin.bottom,
-  g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+// d3.csv("names_by_8.csv", function(error, data) {
+//   if (error) throw error;
+//   console.log(data);
+// });
 
-var parseTime = d3.timeParse("%Y");
-var x = d3.scaleTime().range([0, width]),
-  y = d3.scaleLinear().range([0, height]),
-  z = d3.scaleOrdinal(d3.schemeCategory10);
-
-var line = d3.line()
-  .defined(function(d) {
-    return d.nameRank;
-  })
-  .curve(d3.curveBasis)
-  .x(function(d) {
-    return x(d.date);
-  })
-  .y(function(d) {
-    return y(d.nameRank);
-  });
-
-d3.csv("f100.csv", type, function(error, data) {
+var babyNames = [[[]]];
+var array;
+d3.text("names_by_8_transposed.csv", function(error, data) {
   if (error) throw error;
+//  console.log(data);
+  array = csvToArray(data);
+  //console.log(array);
 
-  var babyNames = data.columns.slice(1).map(function(id) {
-    return {
-      id: id,
-      values: data.map(function(d) {
-        return {
-          date: d.date,
-          nameRank: d[id]
-        };
-      })
-    };
-  });
+  var j = 0;
+  for(var i = 584; i < 592; i = i + 1 ) {
+    babyNames[0][j] = array[i];
+    j = j + 1;
+  }
+  console.log(babyNames[0]);
 
-  x.domain(d3.extent(data, function(d) {
-    return d.date;
-  }));
+var tr = d3.select("body")
+  .append("table")
+  .selectAll("tr")
+  .data(babyNames[0])
+  .enter().append("tr");
 
-  y.domain([
-    d3.min(babyNames, function(c) {
-      return d3.min(c.values, function(d) {
-        return d.nameRank;
-      });
-    }),
-    d3.max(babyNames, function(c) {
-      return d3.max(c.values, function(d) {
-        return d.nameRank;
-      });
-    })
-  ]);
+var td = tr.selectAll("td")
+  .data(function(d) { return d; })
+  .enter().append("td")
+    .text(function(d) { return d; });  
 
-  z.domain(babyNames.map(function(c) {
-    return c.id;
-  }));
+  // var tr = d3.select("body")
+  // .append("table")
+  // .selectAll("tr")
+  // .data(babyNames[0])
+  // .enter().append("tr");
 
-  g.append("g")
-    .attr("class", "axis axis--x")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x));
 
-  g.append("g")
-    .attr("class", "axis axis--y")
-    .call(d3.axisLeft(y))
-
-  var nameLines = g.selectAll(".city")
-    .data(babyNames)
-    .enter().append("g")
-    .attr("class", "city");
-
-  nameLines.append("path")
-    .attr("class", "line")
-    .attr("id", function(d) {
-      return d.id;
-    })
-    .attr("d", function(d) {
-      return line(d.values);
-    })
-    .style("stroke", function(d) {
-      return z(d.id);
-    })
-    .on("mouseover", function(d) {
-      d3.select(this).style("opacity", 1);
-      g.append('text')
-         .classed('info', true)
-         .attr('x', (d3.event.pageX) + "px")   
-         .attr('y', (d3.event.pageY) + "px")           
-         .text(d.id);
-    })
-    .on("mouseout", function(d) {
-      d3.select(this).style("opacity", 0.5);
-      d3.select('text.info').remove();
-    }); 
 });
 
-function type(d, _, columns) {
-  d.date = parseTime(d.date);
-  for (var i = 1, n = columns.length, c; i < n; ++i) d[c = columns[i]] = +d[c];
-  return d;
-}
+// Papa.parse("names_by_8.csv", {
+//   complete: function(results) {
+//     console.log(results);
+//   }
+// });
+
+function csvToArray (csv) {
+    rows  = csv.split("\n");
+    return rows.map(function (row) {
+      return row.split(",");
+    });
+};
+
+
+// // Hard-coded for brevity, but you can set this variable with FileReader
+// var csv   = "the,quick,brown,fox\n"+
+//           "jumps,over,the,lazy,dog";
+
+//var array = csvToArray(csv);
+
+//console.log(array);
